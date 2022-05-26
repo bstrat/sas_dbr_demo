@@ -86,16 +86,23 @@ sas.teach_me_SAS(0)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ...then we connect *SAS* to this database - here via *JDBC*, also *ODBC* is possible - by creating the `sdd` library. Note, that `submitLST` will return the *SAS* log if no output for *ODS* is created.
+# MAGIC ...then we connect *SAS* to this database - here via *JDBC* - by creating the `sdd` library. Note, that `submitLST` will return the *SAS* log if no output for *ODS* is created. Note, that we store both address `URL`and password `PWD` in a *Widget*, which have to `get` first.
 
 # COMMAND ----------
 
-sas.submitLST("""
+dbutils.widgets.text("PWD","")
+PWD = dbutils.widgets.get("PWD")
+dbutils.widgets.text("URL","")
+URL = dbutils.widgets.get("URL")
+
+# COMMAND ----------
+
+sas.submitLST(f"""
 option set=SAS_ACCESS_CLASSPATH="/opt/sas/drivers";
 libname sdd jdbc driverclass="com.simba.spark.jdbc.Driver"
-url="jdbc:spark://adb-6447497411580861.1.azuredatabricks.net:443/default;transportMode=http;
+url="jdbc:spark://{URL}:443/default;transportMode=http;
 ssl=1;httpPath=sql/protocolv1/o/6447497411580861/1019-182657-tjwinew;AuthMech=3;
-UID=token;PWD=dapi4371523961bf74ea5e9eaf3a6f303abc-3"  readbuff=10000 schema="sas_dbr_demo";
+UID=token;PWD={PWD}"  readbuff=10000 schema="sas_dbr_demo";
 """)
 
 # COMMAND ----------
@@ -257,7 +264,7 @@ if st[st.tableName=='class_p'].count() < 1:
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC With `mtc_pred`, the predictions on the test data, we then calculate R squared of the test data and the residuals of actual agains predicted values.
+# MAGIC With `mtc_pred`, the predictions on the test data, we then calculate R squared of the test data and the residuals of actual against predicted values.
 
 # COMMAND ----------
 
@@ -344,7 +351,7 @@ run;
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ...and calculate the R squared, this time using *R*. 
+# MAGIC ...and calculate the R squared, now using *R* again. 
 
 # COMMAND ----------
 

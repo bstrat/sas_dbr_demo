@@ -50,7 +50,7 @@ display(ms)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Finally, create the Pandas data frame `uf` with all reduced fractions between 0 and 1 with denomiator ≤12 ...
+# MAGIC Finally, create the Pandas data frame `uf` with all reduced fractions between 0 and 1 with denominator ≤12 ...
 
 # COMMAND ----------
 
@@ -83,12 +83,13 @@ display(uf)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ... and create a *SQL* query in *SAS*. Note, that we have to use [National Language Support (NLS) functions](https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/nlsref/p18bboh5zrwqw5n1kkhonig4jpwq.htm) like `unicodewidth` and `kindex` (column `xs` is the index of the FRACTION SLASH); `length` will mislead us here as it shows the byte length `bl` which for example is different for `½` and `⅓` depending on their *UTF-8* representation.
+# MAGIC ... after transfering the data frame to *SAS* table `uf` we create a *SQL* query in *SAS*. Note, that we have to use [National Language Support (NLS) functions](https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/nlsref/p18bboh5zrwqw5n1kkhonig4jpwq.htm) like `unicodewidth` and `kindex` (column `xs` is the index of the FRACTION SLASH); `length` will mislead us here as it shows the byte length `bl` which for example is different for `½` and `⅓` depending on their *UTF-8* representation.
 
 # COMMAND ----------
 
 uf_sas = sas.df2sd( uf, 'uf' )
 sas.submitLST("""
+ title "Reduced fractions with denominator ≤12";
  proc sql; select *, length(f) AS bl, unicodewidth(f) AS uw, kindex(f,'⁄') AS xs from uf; quit;
 """)
 
@@ -97,17 +98,16 @@ sas.submitLST("""
 
 # MAGIC %md
 # MAGIC Showing all our reduced fractions in a `PROC SGPLOT` bubble plot.
-# MAGIC For some reason only *SVG* output format renders all fractions correctly, if using any image format like *PNG* or *JPG* the 3 fractions `⅐`, `⅑` and `⅒` cannot be displayed.
+# MAGIC Only *SVG* output format renders all fractions correctly, if using any image format like *PNG* or *JPG* the 3 fractions `⅐`, `⅑` and `⅒` cannot be displayed. Reason might be, that they were not part of Unicode 1.0 - see [Searching in 𝕌𝕟𝕚𝕔𝕠𝕕𝕖 character names for VULGAR FRACTION](https://unicode-search.net/unicode-namesearch.pl?term=VULGAR%20FRACTION) - and *SAS* missed an update...
 
 # COMMAND ----------
 
 sas.submitLST('''
 ods html5 (id=saspy_internal) file=stdout options(svg_mode='inline') device=svg style=Dove;
 ods graphics on / outputfmt=jpg;
-title "Reduced fractions";
 proc sgplot data=uf noborder;
   bubble x=d y=n size=r /
-    fillattrs=graphdata1 bradiusmin=2px bradiusmax=10px nooutline
+    fillattrs=graphdata1 bradiusmin=3px bradiusmax=12px nooutline
     datalabel=f datalabelpos=right datalabelattrs=(family="Arial Unicode MS" size=12);
   xaxis values=(2 to 12 by 1) grid display=(noline noticks nolabel);
   yaxis values=(1 to 11 by 1) grid display=(noline noticks nolabel);
