@@ -74,7 +74,7 @@ for d in list(range(2,D+1)):
       if not u.empty:
         fs += [u.UTF8.iloc[0]]
       else:
-        fs += [f"{u8(n,'P')}⁄{u8(d,'B')}"] # Note the FRACTION SLASH character
+        fs += [f"{u8(n,'P')}⁄{u8(d,'B')}"] # NB. `⁄` is FRACTION SLASH
 
 uf = pd.DataFrame({ 'r': rs, 'f': fs, 'n': ns, 'd': ds })
 display(uf)
@@ -83,14 +83,14 @@ display(uf)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ... after transfering the data frame to *SAS* table `uf` we create a *SQL* query in *SAS*. Note, that we have to use [National Language Support (NLS) functions](https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/nlsref/p18bboh5zrwqw5n1kkhonig4jpwq.htm) like `unicodewidth` and `kindex` (column `xs` is the index of the FRACTION SLASH); `length` will mislead us here as it shows the byte length `bl` which for example is different for `½` and `⅓` depending on their *UTF-8* representation.
+# MAGIC ... after transfering the data frame to *SAS* table `uf` we create a *SQL* query in *SAS*. Note, that we have to use [National Language Support (NLS) functions](https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/nlsref/p18bboh5zrwqw5n1kkhonig4jpwq.htm) like `unicodelen` and `kindex` (column `xs` is the index of the FRACTION SLASH); `length` will mislead us here as it shows the byte length `bl` which for example is different for `½` and `⅓` depending on their *UTF-8* representation.
 
 # COMMAND ----------
 
 uf_sas = sas.df2sd( uf, 'uf' )
 sas.submitLST("""
  title "Reduced fractions with denominator ≤12";
- proc sql; select *, length(f) AS bl, unicodewidth(f) AS uw, kindex(f,'⁄') AS xs from uf; quit;
+ proc sql; select *, length(f) AS bl, unicodelen(f) AS ul, kindex(f,'⁄') AS xs from uf; quit;
 """)
 
 
@@ -104,10 +104,10 @@ sas.submitLST("""
 
 sas.submitLST('''
 ods html5 (id=saspy_internal) file=stdout options(svg_mode='inline') device=svg style=Dove;
-ods graphics on / outputfmt=jpg;
+ods graphics on / outputfmt=png;
 proc sgplot data=uf noborder;
   bubble x=d y=n size=r /
-    fillattrs=graphdata1 bradiusmin=3px bradiusmax=12px nooutline
+    fillattrs=(color=turqois transparency=.3) bradiusmin=3px bradiusmax=12px nooutline
     datalabel=f datalabelpos=right datalabelattrs=(family="Arial Unicode MS" size=12);
   xaxis values=(2 to 12 by 1) grid display=(noline noticks nolabel);
   yaxis values=(1 to 11 by 1) grid display=(noline noticks nolabel);

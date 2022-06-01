@@ -2,7 +2,7 @@
 # MAGIC %md
 # MAGIC ## 1. Start a *SAS* session & work with it 
 # MAGIC #### 1.1 Show connection details
-# MAGIC The connection we choose here is communicating via ssh, see [Configuration](https://sassoftware.github.io/saspy/configuration.html) for details.
+# MAGIC The connection we choose here is communicating via ssh, see [SASPy Configuration](https://sassoftware.github.io/saspy/configuration.html) for details.
 
 # COMMAND ----------
 
@@ -86,21 +86,21 @@ sas.teach_me_SAS(0)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ...then we connect *SAS* to this database - here via *JDBC* - by creating the `sdd` library. Note, that `submitLST` will return the *SAS* log if no output for *ODS* is created. Note, that we store both address `URL`and password `PWD` in a *Widget*, which have to `get` first.
+# MAGIC ...then we connect *SAS* to this database - here via *JDBC* - by creating the `sdd` library. Note, that `submitLST` will return the *SAS* log if no output for *ODS* is created. Note, that we store both server `SRV`and password `PWD` in a *Widget*, which we have to `get` first.
 
 # COMMAND ----------
 
 dbutils.widgets.text("PWD","")
 PWD = dbutils.widgets.get("PWD")
-dbutils.widgets.text("URL","")
-URL = dbutils.widgets.get("URL")
+dbutils.widgets.text("SRV","")
+SRV = dbutils.widgets.get("SRV")
 
 # COMMAND ----------
 
 sas.submitLST(f"""
 option set=SAS_ACCESS_CLASSPATH="/opt/sas/drivers";
 libname sdd jdbc driverclass="com.simba.spark.jdbc.Driver"
-url="jdbc:spark://{URL}:443/default;transportMode=http;
+url="jdbc:spark://{SRV}:443/default;transportMode=http;
 ssl=1;httpPath=sql/protocolv1/o/6447497411580861/1019-182657-tjwinew;AuthMech=3;
 UID=token;PWD={PWD}"  readbuff=10000 schema="sas_dbr_demo";
 """)
@@ -403,3 +403,7 @@ print( mtc_prd.to_df()['code'].str.cat(sep='\n') )
 # COMMAND ----------
 
 # MAGIC %fs rm -r /FileStore/tables/sas_dbr_demo
+
+# COMMAND ----------
+
+
